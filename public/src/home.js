@@ -1,6 +1,11 @@
 
 //getAuthById() = require("./helpers")
-const {findAuthById} = require("./helpers")
+const { default: books } = require("../data/books")
+//const { default: authors } = require('../data/authors')
+
+const authors = require('../data/authors')
+
+const {findAuthById, partitionBooksHelper} = require("./helpers")
 
 function totalBooksCount(books) {
   return books.length
@@ -19,11 +24,12 @@ function booksBorrowedCount(books) {
   let returned = []
   let borrowed = []
   // terenary opperation: if book is borrowed, .push() to [borrowed] || if returned, .push() to [returned]
-  for (let book of books) {
-    //debugging --- console.log(book.borrows[0].returned)
-    (book.borrows[0].returned === true) ? returned.push(book.id) : borrowed.push(book.id)
-  }
-  return borrowed.length
+  return partitionBooksHelper(books).borrowed.length
+  //return borrowed.length
+}
+
+function genreMatcher(book, genArr) { 
+  return genArr.find((key) => key.name === book.genre)
 }
 
 function getMostCommonGenres(books) {
@@ -31,8 +37,10 @@ function getMostCommonGenres(books) {
 
   //declare and make genreArray, that contains an array of this object: {genreName: "", count: X}
   const genArr = []
+  
   for (let book of books) {
-    !(genArr.find((key) => key.name === book.genre)) ? genArr.push({name: book.genre, count: 1}) : genArr.find((key) => key.name === book.genre).count++ 
+    !(genreMatcher(book, genArr)) ? genArr.push({name: book.genre, count: 1}) : genreMatcher(book, genArr).count++
+    console.log(genArr)
   }
   //sort genArr by key{:}.count
   genArr.sort((b, a) => a.count - b.count)
@@ -69,8 +77,25 @@ function getMostPopularAuthors(books, authors) {
   popuArr.sort((b, a) => a.count - b.count)
   //limit & return popArr
   popuArr.length = 5
+  console.log(popuArr)
   return popuArr;
 }
+
+//CUSTOM FUNCTION TO MAKE USE OF .reduce() AND .filter() AND .map()
+function topAuthor(authors, books) {
+  return authors
+    .map(author => {
+      let count = books
+        .filter(book => book.authorId === author.id)
+        .reduce((accumulator, currentValue) => {
+          return currentValue.borrows.length;
+        }, 0); // 0 is initial val for accumulator
+      return {...author, count};
+    })
+    .sort((b, a) => a.count - b.count);
+}
+console.log(topAuthor(authors,books))
+//console.log(topAuthor(authors, books))
 
 module.exports = {
   totalBooksCount,

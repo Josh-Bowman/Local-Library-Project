@@ -10,7 +10,7 @@ function partitionBooksHelper(books) {
       //debugging --- console.log(book.borrows[0].returned)
       (book.borrows[0].returned === true) ? returned.push(book.id) : borrowed.push(book.id)
     }
-    return borrowed
+    return {borrowed, returned}
   }
 
   function findAuthById(authors,id)
